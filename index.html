@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightshift — coding jobs run overnight, checked against git in the morning</title>
+<meta name="description" content="Nightshift is a Windows app that runs coding jobs overnight through Claude Code, then shows you what git recorded next to what the assistant said it did. In development.">
+<link rel="canonical" href="https://trynightshift.dev/">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://trynightshift.dev/">
+<meta property="og:title" content="Nightshift">
+<meta property="og:description" content="Coding jobs run overnight. In the morning, what git recorded sits next to what the assistant said it did. In development.">
+<meta property="og:image" content="https://trynightshift.dev/screenshots/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A Nightshift task card: git facts in a solid-bordered pane on the left, the assistant's claims in a dashed-bordered pane marked UNVERIFIED on the right.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d1117">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230d1117'/%3E%3Crect x='6' y='5' width='5' height='5' fill='%23dfe7f2'/%3E%3Crect x='3' y='11' width='2' height='2' fill='%233f7fd4'/%3E%3Crect x='11' y='3' width='2' height='2' fill='%233f7fd4'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+
+<style>
+/* ------------------------------------------------------------------ *
+   Tokens. The palette is lifted from the app's own stylesheet so the
+   page and the product are literally the same colours.
+ * ------------------------------------------------------------------ */
+:root{
+  --ink:#0d1117;          /* app --bg    */
+  --ink-raised:#131a24;   /* app --card  */
+  --rule:#263040;         /* app --hair  */
+  --rule-soft:#1f2630;    /* app --border*/
+  --paper:#e8edf3;        /* app --text  */
+  --body:#b7c2ce;
+  --quiet:#8b98a5;        /* app --secondary */
+  --faint:#5c6773;        /* app --muted */
+  --accent:#3f7fd4;       /* app --accent */
+  --accent-dim:#2f5f9e;
+  --plus:#4ea36f;         /* app --done   */
+  --minus:#e05c5c;        /* app --failed */
+
+  --col:940px;
+  --measure:65ch;
+
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --serif:'Newsreader',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',Consolas,ui-monospace,'SF Mono',Menlo,monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{-webkit-text-size-adjust:100%}
+
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--body);
+  font:400 16.5px/1.72 var(--sans);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+::selection{background:var(--accent-dim);color:#fff}
+
+a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--rule)}
+a:hover{border-bottom-color:var(--accent)}
+
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+
+.shell{
+  width:100%;
+  max-width:var(--col);
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* Prose is set to a comfortable measure and stays left-aligned inside
+   the wider column, so the rules always run past the text. */
+.measure{max-width:var(--measure)}
+
+/* ------------------------------------------------------------------ *
+   Masthead
+ * ------------------------------------------------------------------ */
+.masthead{
+  border-bottom:1px solid var(--rule-soft);
+}
+.masthead .shell{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:20px;
+  padding-top:22px;
+  padding-bottom:20px;
+}
+.wordmark{
+  margin:0;
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:500;
+  letter-spacing:-.005em;
+  line-height:1.2;
+  color:var(--paper);
+}
+.standing{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--quiet);
+  white-space:nowrap;
+}
+
+/* ------------------------------------------------------------------ *
+   Hero — the screenshot is the argument, so it opens the page.
+ * ------------------------------------------------------------------ */
+.hero{padding:52px 0 8px}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--faint);
+  margin:0 0 26px;
+}
+.shot{
+  display:block;
+  border:1px solid var(--rule);
+  background:var(--ink-raised);
+  /* The capture is cropped; the frame's edge is where the crop is. */
+  overflow:hidden;
+}
+.shot img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.shot picture{display:block}
+.figure{margin:0}
+.caption{
+  margin:16px 0 0;
+  max-width:60ch;
+  font-size:14.5px;
+  line-height:1.62;
+  color:var(--quiet);
+}
+.caption b{color:var(--body);font-weight:500}
+
+/* ------------------------------------------------------------------ *
+   The signature: a labelled rule. Solid means the thing below it can be
+   checked. Dashed means it can't — the same distinction the app draws
+   around every task.
+ * ------------------------------------------------------------------ */
+.marker{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:0;
+  padding:0;
+}
+.marker__label{
+  margin:0;
+  line-height:1.2;
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--paper);
+  white-space:nowrap;
+}
+.marker__line{
+  flex:1 1 auto;
+  min-width:24px;
+  height:0;
+  border-top:1px solid var(--rule);
+}
+.marker__tag{
+  font-family:var(--mono);
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--accent);
+  white-space:nowrap;
+}
+
+/* Claim variant: dashed line, greyed label, and the app's own chip. */
+.marker--claim .marker__label{color:var(--quiet)}
+.marker--claim .marker__line{border-top-style:dashed}
+.marker--claim .marker__tag{
+  color:var(--ink);
+  background:var(--quiet);
+  padding:3px 6px 2px;
+}
+
+/* ------------------------------------------------------------------ *
+   Sections
+ * ------------------------------------------------------------------ */
+.section{padding:74px 0 0}
+.section__body{padding-top:34px}
+
+.lead{
+  margin:0 0 22px;
+  max-width:22ch;
+  font-family:var(--serif);
+  font-size:clamp(30px,4.4vw,42px);
+  font-weight:400;
+  line-height:1.16;
+  letter-spacing:-.012em;
+  color:var(--paper);
+}
+.lead--wide{max-width:26ch}
+
+p{margin:0 0 18px}
+p:last-child{margin-bottom:0}
+
+.section__body strong{color:var(--paper);font-weight:500}
+.tag-inline{
+  font-family:var(--mono);
+  font-size:.82em;
+  letter-spacing:.1em;
+  color:var(--paper);
+}
+
+/* ------------------------------------------------------------------ *
+   The night, in three parts. A real sequence, so it is ordered by the
+   time of day rather than numbered.
+ * ------------------------------------------------------------------ */
+.stages{margin:0;padding:0}
+.stage{
+  display:grid;
+  grid-template-columns:132px minmax(0,1fr);
+  gap:28px;
+  padding:24px 0;
+  border-top:1px solid var(--rule-soft);
+}
+.stage:first-child{border-top:0;padding-top:6px}
+.stage:last-child{padding-bottom:6px}
+.stage__when{
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--accent);
+  padding-top:5px;
+}
+.stage__what{max-width:56ch}
+.stage__what p{margin:0}
+
+/* ------------------------------------------------------------------ *
+   The legend: the two panes, drawn the way the app draws them.
+ * ------------------------------------------------------------------ */
+.legend{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  margin-top:40px;
+}
+/* Column layout so both notes sit on the floor of their pane, whatever
+   height the content above them takes. */
+.pane{
+  display:flex;
+  flex-direction:column;
+  padding:18px 20px 20px;
+  background:var(--ink);
+}
+.pane--fact{
+  border:1px solid var(--rule-soft);
+  border-left:3px solid var(--accent);
+}
+.pane--claim{
+  border:1px dashed var(--rule);
+}
+.pane__head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.pane--fact .pane__head{color:var(--accent)}
+.pane--claim .pane__head{color:var(--quiet)}
+.chip{
+  font-family:var(--mono);
+  font-size:9.5px;
+  font-weight:500;
+  letter-spacing:.13em;
+  color:var(--ink);
+  background:var(--quiet);
+  padding:3px 6px 2px;
+}
+.pane__data{
+  margin:0 0 26px;
+  font-family:var(--mono);
+  font-size:12.5px;
+  line-height:1.75;
+  color:var(--body);
+  overflow-x:auto;
+  white-space:pre;
+}
+.pane__data .plus{color:var(--plus)}
+.pane__data .minus{color:var(--minus)}
+.pane__data .dim{color:var(--faint)}
+/* A claim reads in the assistant's voice, so it is set in italic — the
+   same signal the dashed border carries, said twice. */
+.pane__quote{
+  margin:0 0 26px;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:19px;
+  line-height:1.5;
+  color:var(--body);
+}
+.pane__note{
+  margin:auto 0 0;
+  padding-top:14px;
+  border-top:1px solid var(--rule-soft);
+  font-size:13.5px;
+  line-height:1.55;
+  color:var(--faint);
+}
+.pane--claim .pane__note{border-top-style:dashed}
+
+/* ------------------------------------------------------------------ *
+   Plain list of what is and isn't there yet.
+ * ------------------------------------------------------------------ */
+.ledger{
+  margin:30px 0 0;
+  padding:0;
+  list-style:none;
+  max-width:60ch;
+}
+.ledger li{
+  padding:13px 0;
+  border-top:1px solid var(--rule-soft);
+  display:grid;
+  grid-template-columns:96px minmax(0,1fr);
+  gap:22px;
+  align-items:baseline;
+}
+.ledger li:last-child{border-bottom:1px solid var(--rule-soft)}
+.ledger .state{
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--faint);
+}
+.ledger .state--yes{color:var(--accent)}
+
+/* The closing claim. The page holds itself to the app's rule. */
+.closing{padding:70px 0 0}
+.closing__body{padding-top:34px}
+.closing p{
+  max-width:30ch;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:clamp(23px,3.1vw,30px);
+  line-height:1.34;
+  color:var(--paper);
+  margin:0;
+}
+.closing .after{
+  margin-top:20px;
+  max-width:52ch;
+  font-family:var(--sans);
+  font-style:normal;
+  font-size:15.5px;
+  line-height:1.68;
+  color:var(--quiet);
+}
+
+/* ------------------------------------------------------------------ *
+   Footer
+ * ------------------------------------------------------------------ */
+.colophon{
+  margin-top:88px;
+  border-top:1px solid var(--rule-soft);
+}
+.colophon .shell{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px 24px;
+  padding-top:24px;
+  padding-bottom:60px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--faint);
+}
+
+.skip{
+  position:absolute;
+  left:-9999px;
+  top:0;
+  background:var(--ink-raised);
+  color:var(--paper);
+  padding:10px 16px;
+  border:1px solid var(--accent);
+  z-index:10;
+}
+.skip:focus{left:12px;top:12px}
+
+/* ------------------------------------------------------------------ *
+   Reveal — one quiet fade, nothing more.
+ * ------------------------------------------------------------------ */
+.js .reveal{
+  opacity:0;
+  transform:translateY(9px);
+  transition:opacity .62s ease,transform .62s ease;
+}
+.js .reveal.is-in{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  .js .reveal{opacity:1;transform:none;transition:none}
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+
+/* ------------------------------------------------------------------ *
+   Narrow screens
+ * ------------------------------------------------------------------ */
+@media (max-width:760px){
+  body{font-size:16px}
+  .shell{padding:0 20px}
+  .masthead .shell{padding-top:18px;padding-bottom:16px}
+  .wordmark{font-size:20px}
+  .standing{font-size:10px;letter-spacing:.1em}
+  .hero{padding-top:36px}
+  .eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:20px}
+  .section{padding-top:56px}
+  .section__body{padding-top:28px}
+  .marker{gap:12px}
+  .marker__label{font-size:10.5px;letter-spacing:.13em}
+  .marker__tag{font-size:9px}
+  .stage{grid-template-columns:1fr;gap:8px;padding:20px 0}
+  .stage__when{padding-top:0}
+  .legend{grid-template-columns:1fr;gap:14px}
+  .closing{padding-top:56px}
+  .colophon{margin-top:64px}
+  .colophon .shell{padding-bottom:44px}
+}
+
+/* The FACT / UNVERIFIED tag is the point of the rule, so it never drops —
+   the label gives up its letter-spacing before the tag gives up its place. */
+@media (max-width:430px){
+  .marker{gap:10px}
+  .marker__label{letter-spacing:.08em}
+  .marker__line{min-width:16px}
+  .ledger li{grid-template-columns:82px minmax(0,1fr);gap:16px}
+}
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="shell">
+    <h1 class="wordmark">Nightshift</h1>
+    <span class="standing">In development</span>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Hero: the product explains itself faster than a sentence can. -->
+  <section class="hero">
+    <div class="shell">
+      <p class="eyebrow">Windows desktop app · runs on your machine</p>
+      <figure class="figure">
+        <div class="shot">
+          <!-- A phone can't hold the whole card at a readable size, so it gets
+               the half that matters: the two panes, uncut and side by side. -->
+          <picture>
+          <source
+            media="(max-width: 700px)"
+            srcset="screenshots/morning-review-panes.png"
+            width="1472" height="674">
+          <img
+            src="screenshots/morning-review-task-card.png"
+            width="1472" height="1380"
+            alt="A task card in the Nightshift dashboard. A green DONE badge sits beside the prompt that was asked. Below it, two panes side by side: on the left, inside a solid border with a blue left edge, a pane headed GIT FACTS · GROUND TRUTH listing the branch name, changed: 7 file(s), +802 -171, and the seven filenames. On the right, inside a dashed border, a pane headed CLAUDE'S CLAIMS with a grey UNVERIFIED chip, containing the assistant's written account of the work.">
+          </picture>
+        </div>
+        <figcaption class="caption">
+          One job from last night. On the left, <b>what git recorded</b>. On the right,
+          <b>what the assistant said it did</b>. Nightshift never mixes the two.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="marker reveal">
+        <h2 class="marker__label">What it is</h2>
+        <span class="marker__line"></span>
+        <span class="marker__tag">Fact</span>
+      </div>
+      <div class="section__body reveal">
+        <p class="lead">Nightshift does coding jobs while you sleep.</p>
+        <div class="measure">
+          <p>You write the jobs down during the day, in plain sentences. At night,
+          Nightshift hands them one at a time to Claude Code — Anthropic's
+          command-line coding assistant — and lets it work.</p>
+
+          <p>Every job runs on its own git branch. Your files stay as you left them
+          until you read the result and decide to keep it.</p>
+
+          <p>It is a desktop app for Windows. There is no terminal to open and no
+          account to make: the dashboard is a page served from your own computer.
+          You need git and Claude Code installed already.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="marker reveal">
+        <h2 class="marker__label">How a night goes</h2>
+        <span class="marker__line"></span>
+        <span class="marker__tag">Fact</span>
+      </div>
+      <div class="section__body reveal">
+        <div class="stages">
+
+          <div class="stage">
+            <div class="stage__when">Evening</div>
+            <div class="stage__what">
+              <p>You add jobs to a list. Each one is a few sentences describing what
+              you want changed. Drag them into the order you want them done in —
+              that is the order they run in.</p>
+            </div>
+          </div>
+
+          <div class="stage">
+            <div class="stage__when">Overnight</div>
+            <div class="stage__what">
+              <p>Nightshift works the list, one job at a time, on its own branch.
+              When Claude Code hits its usage limit, Nightshift waits the limit out
+              and picks up where it stopped instead of giving up on the rest of the
+              night.</p>
+            </div>
+          </div>
+
+          <div class="stage">
+            <div class="stage__when">Morning</div>
+            <div class="stage__what">
+              <p>One page shows every job. For each, you keep the work, throw it
+              away, or send it back to be tried again. Nothing is merged into your
+              project unless you say so, and discarding deletes nothing.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="marker reveal">
+        <h2 class="marker__label">Facts and claims</h2>
+        <span class="marker__line"></span>
+        <span class="marker__tag">Fact</span>
+      </div>
+      <div class="section__body reveal">
+        <p class="lead lead--wide">A coding assistant can tell you it finished and
+        have changed nothing.</p>
+        <div class="measure">
+          <p>It is not common. It is common enough that you cannot read a summary
+          over coffee and go to work on it.</p>
+
+          <p>So Nightshift keeps two things apart. Git records what changed on disk:
+          which files, how many lines. That can be checked. The assistant's account
+          of what it did cannot be checked — it is a description, and descriptions
+          can be wrong.</p>
+
+          <p>The dashboard draws the difference. Facts get a solid border. Claims get
+          a dashed one and the word <span class="tag-inline">UNVERIFIED</span> —
+          every time, including when the claim turns out to be true. The label
+          describes the kind of thing you are reading, not a suspicion about that
+          particular job.</p>
+
+          <p>When a job reports success and the change is empty, Nightshift says so
+          and holds the job for you to look at, rather than quietly merging it.</p>
+        </div>
+
+        <div class="legend">
+          <div class="pane pane--fact">
+            <div class="pane__head">Git facts · ground truth</div>
+<pre class="pane__data">branch:  <span class="dim">nightshift/20260804-011931</span>
+changed: 7 file(s), <span class="plus">+802</span> <span class="minus">-171</span>
+
+  README.md
+  STATUS.md
+  UI_SPEC.md
+  nightshift.py
+  server.py
+  test_actions.py
+  test_nightshift.py</pre>
+            <p class="pane__note">Read out of git. Nightshift's verdict on the job
+            comes from here and nowhere else.</p>
+          </div>
+
+          <div class="pane pane--claim">
+            <div class="pane__head">Claude's claims <span class="chip">Unverified</span></div>
+            <p class="pane__quote">“I've implemented both changes. Here's what
+            landed, and one thing I couldn't do.”</p>
+            <p class="pane__note">Written by the assistant about its own work.
+            Useful to read. Not evidence of anything.</p>
+          </div>
+        </div>
+        <p class="caption">The two halves of the card above,
+        with the rule spelled out.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="marker reveal">
+        <h2 class="marker__label">Where it stands</h2>
+        <span class="marker__line"></span>
+        <span class="marker__tag">Fact</span>
+      </div>
+      <div class="section__body reveal">
+        <div class="measure">
+          <p>Nightshift is in development. It works: it has run real jobs unattended,
+          night after night, on the project that is building it.</p>
+          <p>Everything below is true today.</p>
+        </div>
+
+        <ul class="ledger">
+          <li><span class="state state--yes">Working</span><span>Queue, overnight runner, morning dashboard, keep and discard</span></li>
+          <li><span class="state">Not yet</span><span>Anything to download — the app is not packaged for anyone else's machine</span></li>
+          <li><span class="state">Not yet</span><span>A price, a licence, or a way to buy it</span></li>
+          <li><span class="state">Not yet</span><span>Users other than its author, so there is nothing to quote and no numbers worth showing</span></li>
+          <li><span class="state">Not yet</span><span>A release date</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="shell">
+      <div class="marker marker--claim reveal">
+        <h2 class="marker__label">What happens next</h2>
+        <span class="marker__line"></span>
+        <span class="marker__tag">Unverified</span>
+      </div>
+      <div class="closing__body reveal">
+        <p>“It'll be ready when the morning report is boring.”</p>
+        <p class="after">That is a claim, not a fact, so it sits under a dashed rule
+        like every other claim on this page. When there is something to download,
+        this page will say so and the rule above will be solid.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- No contact line yet: add one here when there's an address or list to point at. -->
+<footer class="colophon">
+  <div class="shell">
+    <span>Nightshift · trynightshift.dev</span>
+    <span>In development · 2026</span>
+  </div>
+</footer>
+
+<script>
+document.documentElement.classList.add('js');
+(function () {
+  var items = document.querySelectorAll('.reveal');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (!('IntersectionObserver' in window) || reduced.matches) {
+    for (var i = 0; i < items.length; i++) items[i].classList.add('is-in');
+    return;
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-in');
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
+
+  items.forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>
