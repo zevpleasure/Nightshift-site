@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nightshift — coding jobs run overnight, checked against git in the morning</title>
-<meta name="description" content="Nightshift is a Windows app that runs coding jobs overnight through Claude Code, then shows what git recorded beside what the assistant said it did. In development.">
+<meta name="description" content="Nightshift is a Windows app that runs coding jobs overnight through Claude Code, then shows what git recorded beside what the assistant said it did. In development, with release planned for November 7, 2026.">
 <link rel="canonical" href="https://trynightshift.dev/">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://trynightshift.dev/">
 <meta property="og:title" content="Nightshift">
-<meta property="og:description" content="Coding jobs run overnight. In the morning, what git recorded sits beside what the assistant said it did — one solid border, one dashed. In development.">
+<meta property="og:description" content="Coding jobs run overnight. In the morning, what git recorded sits beside what the assistant said it did — one solid border, one dashed. Release planned for November 7, 2026.">
 <meta property="og:image" content="https://trynightshift.dev/screenshots/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -52,7 +52,7 @@
 
 *,*::before,*::after{box-sizing:border-box}
 
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 
 body{
   margin:0;
@@ -107,6 +107,26 @@ p:last-child{margin-bottom:0}
   color:var(--quiet);
   white-space:nowrap;
 }
+.masthead__end{display:flex;align-items:center;gap:18px}
+
+/* Outlined rather than filled: it stays available at the top of every
+   screen without competing with the form it points at. */
+.btn-ghost{
+  display:inline-flex;
+  align-items:center;
+  height:34px;
+  padding:0 14px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--paper);
+  background:none;
+  border:1px solid var(--rule);
+  white-space:nowrap;
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
 
 /* ------------------------------------------------------------------ *
    Hero. The screenshot is the argument, so it is the biggest thing on
@@ -266,6 +286,7 @@ p:last-child{margin-bottom:0}
   color:var(--faint);
 }
 .ledger .state--yes{color:var(--accent)}
+.ledger .state--plan{color:var(--warn)}
 
 /* The closing claim, held to the app's own rule. */
 .closing{padding:46px 0 0}
@@ -290,6 +311,25 @@ p:last-child{margin-bottom:0}
    rather than left sitting under its own success message.
  * ------------------------------------------------------------------ */
 .signup{max-width:var(--text)}
+#waitlist{scroll-margin-top:22px}
+.releasing{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:0 0 12px;
+  font-size:16px;
+  font-weight:500;
+  color:var(--paper);
+}
+.releasing__k{
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--accent);
+}
 .signup--hero{margin:0 0 30px}
 .signup--foot{
   margin:22px 0 0;
@@ -406,14 +446,38 @@ p:last-child{margin-bottom:0}
    Footer
  * ------------------------------------------------------------------ */
 .colophon{margin-top:56px;border-top:1px solid var(--rule-soft)}
-.colophon .shell{
+.colophon .shell{padding-top:22px;padding-bottom:44px}
+
+.elsewhere{display:flex;flex-wrap:wrap;gap:12px 30px;margin:0 0 22px}
+.elsewhere a{
+  display:inline-flex;
+  align-items:baseline;
+  gap:9px;
+  padding-bottom:3px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--faint);
+  border-bottom:1px solid var(--rule);
+}
+.elsewhere a b{
+  font-family:var(--sans);
+  font-size:14.5px;
+  font-weight:500;
+  letter-spacing:0;
+  text-transform:none;
+  color:var(--paper);
+}
+.elsewhere a:hover{border-bottom-color:var(--accent)}
+.elsewhere a:hover b{color:var(--accent)}
+
+.colophon__fine{
   display:flex;
   flex-wrap:wrap;
-  align-items:baseline;
   justify-content:space-between;
   gap:8px 24px;
-  padding-top:18px;
-  padding-bottom:44px;
   font-family:var(--mono);
   font-size:11px;
   letter-spacing:.13em;
@@ -442,6 +506,7 @@ p:last-child{margin-bottom:0}
 .js .reveal.is-in{opacity:1;transform:none}
 
 @media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
   .js .reveal{opacity:1;transform:none;transition:none}
   *{animation-duration:.001ms!important;transition-duration:.001ms!important}
 }
@@ -455,6 +520,9 @@ p:last-child{margin-bottom:0}
   .masthead .shell{padding-top:15px;padding-bottom:13px}
   .wordmark{font-size:19px}
   .standing{font-size:10px;letter-spacing:.1em}
+  .masthead__end{gap:12px}
+  .btn-ghost{height:32px;padding:0 11px;font-size:10px;letter-spacing:.1em}
+  .releasing{gap:8px;margin-bottom:10px;font-size:15.5px}
   .hero{padding-top:28px}
   .eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:14px}
   .headline span{display:inline}   /* let it set as one paragraph when narrow */
@@ -475,6 +543,10 @@ p:last-child{margin-bottom:0}
 
 /* The FACT / UNVERIFIED tag is the point of the rule, so it never drops:
    the label gives up its letter-spacing before the tag gives up its place. */
+@media (max-width:560px){
+  .standing{display:none}
+}
+
 @media (max-width:430px){
   .marker{gap:10px}
   .marker__label{letter-spacing:.08em}
@@ -490,7 +562,10 @@ p:last-child{margin-bottom:0}
 <header class="masthead">
   <div class="shell">
     <span class="wordmark">Nightshift</span>
-    <span class="standing">In development</span>
+    <div class="masthead__end">
+      <span class="standing">In development</span>
+      <a class="btn-ghost" href="#waitlist">Join the waitlist</a>
+    </div>
   </div>
 </header>
 
@@ -505,7 +580,8 @@ p:last-child{margin-bottom:0}
       you sleep, then shows what actually changed beside what the assistant says it
       changed.</p>
 
-      <div class="signup signup--hero">
+      <div class="signup signup--hero" id="waitlist">
+        <p class="releasing"><span class="releasing__k">Planned release</span> November 7, 2026</p>
         <div class="newsletter-form-container">
           <form class="newsletter-form" action="https://app.loops.so/api/newsletter-form/cmsnrrnt4024n0i2p1s7pl3mc" method="POST">
             <input class="newsletter-form-input" placeholder="you@example.com" required="" type="email" name="newsletter-form-input" aria-label="Email address">
@@ -623,7 +699,7 @@ p:last-child{margin-bottom:0}
           <li><span class="state">Not yet</span><span>A download — the build is unsigned and not published anywhere</span></li>
           <li><span class="state">Not yet</span><span>A price, a licence, or a way to buy it</span></li>
           <li><span class="state">Not yet</span><span>Outside users, so there is nothing to quote and no numbers worth showing</span></li>
-          <li><span class="state">Not yet</span><span>A release date</span></li>
+          <li><span class="state state--plan">Planned</span><span>November 7, 2026 — the date the release is aimed at</span></li>
         </ul>
       </div>
     </div>
@@ -637,10 +713,11 @@ p:last-child{margin-bottom:0}
         <span class="marker__tag">Unverified</span>
       </div>
       <div class="closing__body reveal">
-        <q>It'll be ready when the morning report is boring.</q>
-        <p class="closing__after">A claim, not a fact — so it sits under a dashed rule
-        like every other claim. When there is something to download, this page will say
-        so, that rule will be solid, and the list below gets an email.</p>
+        <q>Releasing November 7, 2026.</q>
+        <p class="closing__after">That is the date the work is aimed at — a plan, not
+        something that has happened yet — so it sits under a dashed rule like every other
+        claim on this page. Join the list and you'll get one email when there is a build
+        to download.</p>
 
         <div class="signup signup--foot">
           <div class="newsletter-form-container">
@@ -668,8 +745,14 @@ p:last-child{margin-bottom:0}
 <!-- No contact line yet: add one here when there's an address or list to point at. -->
 <footer class="colophon">
   <div class="shell">
-    <span>Nightshift · trynightshift.dev</span>
-    <span>In development · 2026</span>
+    <nav class="elsewhere" aria-label="Elsewhere">
+      <a href="https://www.instagram.com/zevpleasure/" target="_blank" rel="me noopener">Instagram <b>@zevpleasure</b></a>
+      <a href="https://www.linkedin.com/in/zevpleasure" target="_blank" rel="me noopener">LinkedIn <b>Zev Pleasure</b></a>
+    </nav>
+    <div class="colophon__fine">
+      <span>Nightshift · trynightshift.dev</span>
+      <span>In development · Releasing November 7, 2026</span>
+    </div>
   </div>
 </footer>
 
