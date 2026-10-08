@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nightshift — coding jobs run overnight, checked against git in the morning</title>
-<meta name="description" content="Nightshift is a Windows app that runs coding jobs overnight through Claude Code, then shows what git recorded beside what the assistant said it did. In development, with release planned for November 7, 2026.">
+<title>Nightshift — coding jobs run overnight, with a morning report you can check</title>
+<meta name="description" content="Nightshift is a Windows app that runs coding jobs overnight through Claude Code, then shows exactly what changed beside what the assistant said it did. In development, with release planned for November 7, 2026.">
 <link rel="canonical" href="https://trynightshift.dev/">
 
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://trynightshift.dev/">
 <meta property="og:title" content="Nightshift">
-<meta property="og:description" content="Coding jobs run overnight. In the morning, what git recorded sits beside what the assistant said it did — one solid border, one dashed. Release planned for November 7, 2026.">
+<meta property="og:description" content="Coding jobs run overnight. In the morning, what actually changed sits beside what the assistant said it did — one solid border, one dashed. Release planned for November 7, 2026.">
 <meta property="og:image" content="https://trynightshift.dev/screenshots/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -574,8 +574,8 @@ p:last-child{margin-bottom:0}
   <section class="hero">
     <div class="shell">
       <p class="eyebrow">Windows desktop app · runs on your machine</p>
-      <h1 class="headline">Coding jobs run overnight. <span>Checked against git in the
-      morning.</span></h1>
+      <h1 class="headline">Coding jobs run overnight. <span>In the morning, you see
+      exactly what changed.</span></h1>
       <p class="standfirst">Nightshift works through your queue with Claude Code while
       you sleep, then shows what actually changed beside what the assistant says it
       changed.</p>
@@ -607,7 +607,7 @@ p:last-child{margin-bottom:0}
             alt="Two panes from a finished job in the Nightshift dashboard. Left, inside a solid border with a blue left edge: GIT FACTS · GROUND TRUTH, the branch name, changed: 7 file(s), +802 -171, and the seven filenames. Right, inside a dashed border: CLAUDE'S CLAIMS with a grey UNVERIFIED chip, and the assistant's written account of the same work.">
         </div>
         <figcaption class="caption">
-          One finished job. Left, <b>what git recorded</b> — solid border. Right,
+          One finished job. Left, <b>what actually changed</b> — solid border. Right,
           <b>what the assistant said it did</b> — dashed border, labelled unverified.
           The two never blend into one sentence.
         </figcaption>
@@ -665,8 +665,9 @@ p:last-child{margin-bottom:0}
       </div>
       <div class="section__body reveal">
         <p class="lead">An assistant can report success and have changed nothing.</p>
-        <p>So the report keeps two things apart. Git records what changed on disk,
-        which can be checked. The assistant's account of its own work cannot.</p>
+        <p>So the report keeps two things apart. Git — the standard tool that records
+        every change made to a project — says exactly which files changed and by how much.
+        That can be checked. The assistant's account of its own work cannot.</p>
         <p>Claims are drawn dashed and labelled <span class="tag-inline">UNVERIFIED</span>
         every time — including when they turn out to be true. And when a job reports
         success with an empty change, Nightshift holds it for review instead of
